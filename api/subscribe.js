@@ -142,7 +142,7 @@ export default async function handler(req, res) {
 		const auth = Buffer.from(`anystring:${apiKey}`).toString("base64");
 		const url = `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${listId}/members/${subscriberHash}`;
 
-		// PUT is idempotent; status_if_new ensures double opt-in for new members
+		// PUT is idempotent; status_if_new controls opt-in behavior for new members
 		const mcResponse = await fetch(url, {
 			method: "PUT",
 			headers: {
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
 			},
 			body: JSON.stringify({
 				email_address: emailRaw,
-				status_if_new: "pending",
+				status_if_new: "subscribed",
 				merge_fields: {
 					FNAME: firstName,
 					LNAME: lastName,
@@ -182,12 +182,12 @@ export default async function handler(req, res) {
 
 		const status = String(mcJson?.status || "");
 		if (status === "subscribed") {
-			return res.status(200).json({ ok: true, message: "Je bent al ingeschreven." });
+			return res.status(200).json({ ok: true, message: "Je inschrijving is voltooid." });
 		}
 
 		return res
 			.status(200)
-			.json({ ok: true, message: "Gelukt. Check je e-mail om je inschrijving te bevestigen." });
+			.json({ ok: true, message: "Je inschrijving is ontvangen." });
 	} catch {
 		return res.status(500).json({ message: "Serverfout. Probeer het later opnieuw." });
 	}
