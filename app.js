@@ -62,7 +62,7 @@
 
 			setResponse(
 				"success",
-				data?.message || "Gelukt. Check je e-mail voor de bevestiging van je inschrijving."
+				data?.message || "Gelukt. Je inschrijving is ontvangen."
 			);
 			form.reset();
 			if (startField) startField.value = String(Date.now());

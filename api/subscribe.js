@@ -21,7 +21,20 @@ function parseAllowedOrigins() {
 
 function isOriginAllowed(req) {
 	const origin = req.headers.origin;
-	if (!origin) return process.env.NODE_ENV !== "production";
+	if (!origin) {
+		// Some same-origin requests may omit Origin; accept if Referer matches host.
+		const referer = req.headers.referer;
+		if (typeof referer === "string" && referer.length > 0) {
+			try {
+				const refererUrl = new URL(referer);
+				const host = String(req.headers.host || "");
+				return refererUrl.host === host;
+			} catch {
+				// fall through
+			}
+		}
+		return process.env.NODE_ENV !== "production";
+	}
 
 	const allowed = parseAllowedOrigins();
 	if (allowed.length > 0) return allowed.includes(origin);
@@ -73,7 +86,10 @@ export default async function handler(req, res) {
 	}
 
 	if (!isOriginAllowed(req)) {
-		return res.status(403).json({ message: "Niet toegestaan." });
+		return res.status(403).json({
+			message:
+				"Niet toegestaan vanaf dit domein. Open de aanmeldpagina via de officiële website (zelfde domein als de API) of voeg het domein toe aan ALLOWED_ORIGINS in Vercel.",
+		});
 	}
 
 	const ip = getClientIp(req);
