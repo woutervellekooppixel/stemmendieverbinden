@@ -81,6 +81,10 @@ function mailchimpUserMessage(title, detail) {
 	const d = String(detail || "");
 	const dl = d.toLowerCase();
 
+	if (t.includes("forgotten email") || dl.includes("permanently deleted") || dl.includes("cannot be re-imported")) {
+		return "Dit e-mailadres is eerder permanent verwijderd in Mailchimp en kan niet opnieuw via deze pagina worden toegevoegd. Gebruik een ander e-mailadres, of laat de persoon zichzelf opnieuw inschrijven (Mailchimp vereist dat bij permanent verwijderde contacten).";
+	}
+
 	if (t.includes("invalid resource")) {
 		return "Controleer je invoer en probeer het opnieuw.";
 	}
@@ -95,6 +99,15 @@ function mailchimpUserMessage(title, detail) {
 	}
 
 	return "Inschrijven mislukt. Controleer je gegevens en probeer het opnieuw.";
+}
+
+function mailchimpHttpStatusForError(title, detail) {
+	const t = String(title || "").toLowerCase();
+	const dl = String(detail || "").toLowerCase();
+	if (t.includes("forgotten email") || dl.includes("permanently deleted") || dl.includes("cannot be re-imported")) {
+		return 409;
+	}
+	return 400;
 }
 
 export default async function handler(req, res) {
@@ -220,7 +233,9 @@ export default async function handler(req, res) {
 				if (process.env.NODE_ENV !== "production" && detail) {
 					return res.status(400).json({ message: detail });
 				}
-				return res.status(400).json({ message: mailchimpUserMessage(title, detail) });
+				return res
+					.status(mailchimpHttpStatusForError(title, detail))
+					.json({ message: mailchimpUserMessage(title, detail) });
 			}
 
 			return res.status(500).json({ message: "Inschrijven mislukt. Probeer het later opnieuw." });
