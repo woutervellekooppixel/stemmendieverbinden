@@ -418,7 +418,6 @@
 									class="brandLogo"
 									src="assets/denhaag-logo.png"
 									alt="Gemeente Den Haag"
-									onerror="this.style.display='none'"
 								/>
 								<div class="brand">Stemmen die verbinden</div>
 							</div>
@@ -451,6 +450,7 @@
 										data-endpoint="/api/subscribe"
 									>
 										<div id="mc_embed_signup_scroll">
+											<input type="hidden" name="_start" id="form-start" value="" />
 											<div class="mc-field-group">
 												<label for="mce-EMAIL">E-mailadres <span class="asterisk">*</span></label>
 												<input
@@ -569,73 +569,6 @@
 			</main>
 		</div>
 
-		<script>
-			(() => {
-				const form = document.getElementById("mc-embedded-subscribe-form");
-				if (!form) return;
-
-				const submitButton = document.getElementById("mc-embedded-subscribe");
-				const errorEl = document.getElementById("mce-error-response");
-				const successEl = document.getElementById("mce-success-response");
-
-				const setResponse = (type, message) => {
-					if (errorEl) {
-						errorEl.style.display = type === "error" ? "block" : "none";
-						errorEl.textContent = type === "error" ? message : "";
-					}
-					if (successEl) {
-						successEl.style.display = type === "success" ? "block" : "none";
-						successEl.textContent = type === "success" ? message : "";
-					}
-				};
-
-				form.addEventListener("submit", async (event) => {
-					event.preventDefault();
-
-					setResponse("error", "");
-					setResponse("success", "");
-
-					if (!form.reportValidity()) return;
-
-					const endpoint = form.getAttribute("data-endpoint") || "/api/subscribe";
-					const formData = new FormData(form);
-					const payload = Object.fromEntries(formData.entries());
-
-					if (submitButton) {
-						submitButton.setAttribute("disabled", "");
-						submitButton.value = "Bezig met inschrijven…";
-					}
-
-					try {
-						const response = await fetch(endpoint, {
-							method: "POST",
-							headers: { "Content-Type": "application/json" },
-							body: JSON.stringify(payload),
-						});
-
-						const data = await response.json().catch(() => ({}));
-						if (!response.ok) {
-							throw new Error(data?.message || "Er ging iets mis. Probeer het later opnieuw.");
-						}
-
-						setResponse(
-							"success",
-							"Gelukt. Check je e-mail voor de bevestiging van je inschrijving."
-						);
-						form.reset();
-					} catch (error) {
-						setResponse(
-							"error",
-							error instanceof Error ? error.message : "Er ging iets mis. Probeer het later opnieuw."
-						);
-					} finally {
-						if (submitButton) {
-							submitButton.removeAttribute("disabled");
-							submitButton.value = "Inschrijven";
-						}
-					}
-				});
-			})();
-		</script>
+		<script src="app.js" defer></script>
 	</body>
 </html>
