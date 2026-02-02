@@ -24,8 +24,16 @@ function isOriginAllowed(req) {
 	if (!origin) return process.env.NODE_ENV !== "production";
 
 	const allowed = parseAllowedOrigins();
-	if (allowed.length === 0) return process.env.NODE_ENV !== "production";
-	return allowed.includes(origin);
+	if (allowed.length > 0) return allowed.includes(origin);
+
+	// Default: same-origin only
+	try {
+		const originUrl = new URL(origin);
+		const host = String(req.headers.host || "");
+		return originUrl.host === host;
+	} catch {
+		return false;
+	}
 }
 
 function takeRateLimitToken(ip) {

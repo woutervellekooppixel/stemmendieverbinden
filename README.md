@@ -9,7 +9,7 @@ Statische pagina met inschrijfformulier (Mailchimp via Vercel API-route).
 	- `MAILCHIMP_API_KEY`
 	- `MAILCHIMP_SERVER_PREFIX` (bijv. `us5`)
 	- `MAILCHIMP_LIST_ID`
-	- `ALLOWED_ORIGINS` (komma-gescheiden, bijv. `https://jouwdomein.nl,https://www.jouwdomein.nl`)
+	- `ALLOWED_ORIGINS` (optioneel, komma-gescheiden allowlist; standaard is alleen same-origin toegestaan)
 
 Daarna opnieuw deployen.
 
