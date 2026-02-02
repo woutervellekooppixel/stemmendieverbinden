@@ -76,6 +76,27 @@ function isValidEmail(email) {
 	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function mailchimpUserMessage(title, detail) {
+	const t = String(title || "").toLowerCase();
+	const d = String(detail || "");
+	const dl = d.toLowerCase();
+
+	if (t.includes("invalid resource")) {
+		return "Controleer je invoer en probeer het opnieuw.";
+	}
+	if (dl.includes("marketing_permissions")) {
+		return "Inschrijven kan nu niet omdat deze mailinglijst extra toestemming vereist (Mailchimp/GDPR-instellingen). Neem contact op met de beheerder.";
+	}
+	if (dl.includes("already a list member") || t.includes("member exists")) {
+		return "Dit e-mailadres is al ingeschreven.";
+	}
+	if (dl.includes("compliance state") || dl.includes("gdpr")) {
+		return "Inschrijven kan nu niet door privacy/ toestemming-instellingen van de mailinglijst. Neem contact op met de beheerder.";
+	}
+
+	return "Inschrijven mislukt. Controleer je gegevens en probeer het opnieuw.";
+}
+
 export default async function handler(req, res) {
 	res.setHeader("Content-Type", "application/json; charset=utf-8");
 	res.setHeader("Cache-Control", "no-store");
@@ -184,13 +205,22 @@ export default async function handler(req, res) {
 			const title = String(mcJson?.title || "");
 			const detail = String(mcJson?.detail || "");
 
-			// Keep messages user-friendly; avoid leaking internals
-			if (title.toLowerCase().includes("invalid resource")) {
-				return res.status(400).json({ message: "Controleer je invoer en probeer het opnieuw." });
-			}
+			// Always log diagnostics server-side (visible in Vercel logs)
+			console.error("Mailchimp API error", {
+				status: mcResponse.status,
+				title,
+				detail,
+				type: mcJson?.type,
+				errors: mcJson?.errors,
+			});
 
-			if (detail && process.env.NODE_ENV !== "production") {
-				return res.status(400).json({ message: detail });
+			// For client-visible errors (validation/compliance), return a safe 400.
+			if (mcResponse.status >= 400 && mcResponse.status < 500) {
+				// Prefer a friendly mapped message; in non-prod you can still see raw detail.
+				if (process.env.NODE_ENV !== "production" && detail) {
+					return res.status(400).json({ message: detail });
+				}
+				return res.status(400).json({ message: mailchimpUserMessage(title, detail) });
 			}
 
 			return res.status(500).json({ message: "Inschrijven mislukt. Probeer het later opnieuw." });
