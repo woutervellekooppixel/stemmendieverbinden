@@ -91,12 +91,12 @@
 			.brandGroup {
 				display: inline-flex;
 				align-items: center;
-				gap: 12px;
-				min-height: 44px;
+				gap: 14px;
+				min-height: 52px;
 			}
 
 			.brandLogo {
-				height: 44px;
+				height: clamp(44px, 5vw, 56px);
 				width: auto;
 				display: block;
 				object-fit: contain;
@@ -108,7 +108,7 @@
 			.brand {
 				font-weight: 700;
 				letter-spacing: 0.2px;
-				font-size: 18px;
+				font-size: clamp(18px, 2.2vw, 22px);
 			}
 
 			.heroInner .brand {
