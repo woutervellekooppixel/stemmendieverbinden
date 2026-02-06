@@ -486,6 +486,41 @@ h1 {
 	font-size: 14px;
 }
 
+.infoTitle {
+	margin: 0;
+	font-size: 14px;
+	font-family: "TheMix", "TheSans", Arial, Helvetica, system-ui, sans-serif;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.schedule {
+	list-style: none;
+	margin: 8px 0 0;
+	padding: 0;
+	display: grid;
+	gap: 8px;
+}
+
+.scheduleItem {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+}
+
+.scheduleTime {
+	min-width: 96px;
+	font-weight: 700;
+	color: var(--text);
+	white-space: nowrap;
+}
+
+.scheduleDesc {
+	color: var(--muted);
+	line-height: 1.5;
+	font-size: 14px;
+}
+
 /* Form styling */
 #mc_embed_shell {
 	width: 100%;
