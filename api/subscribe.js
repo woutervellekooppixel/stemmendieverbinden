@@ -98,7 +98,32 @@ function mailchimpUserMessage(title, detail) {
 		return "Inschrijven kan nu niet door privacy/ toestemming-instellingen van de mailinglijst. Neem contact op met de beheerder.";
 	}
 
+	if (
+		dl.includes("merge_fields") ||
+		dl.includes("merge fields") ||
+		dl.includes("merge field") ||
+		dl.includes("is not a valid merge") ||
+		dl.includes("schema")
+	) {
+		return "Inschrijven kan nu niet omdat het formulier niet overeenkomt met de Mailchimp-instellingen (velden). Neem contact op met de beheerder.";
+	}
+
 	return "Inschrijven mislukt. Controleer je gegevens en probeer het opnieuw.";
+}
+
+function isMailchimpMergeFieldError(mcJson) {
+	const title = String(mcJson?.title || "").toLowerCase();
+	const detail = String(mcJson?.detail || "").toLowerCase();
+
+	if (title.includes("invalid resource") && (detail.includes("merge") || detail.includes("schema"))) return true;
+	if (detail.includes("merge_fields") || detail.includes("merge fields") || detail.includes("merge field")) return true;
+	if (detail.includes("is not a valid merge") || detail.includes("schema")) return true;
+
+	const errors = mcJson?.errors;
+	if (Array.isArray(errors)) {
+		return errors.some((e) => String(e?.field || "").toLowerCase().startsWith("merge_fields"));
+	}
+	return false;
 }
 
 function mailchimpHttpStatusForError(title, detail) {
@@ -192,28 +217,48 @@ export default async function handler(req, res) {
 		const auth = Buffer.from(`anystring:${apiKey}`).toString("base64");
 		const url = `https://${serverPrefix}.api.mailchimp.com/3.0/lists/${listId}/members/${subscriberHash}`;
 
-		// PUT is idempotent; status_if_new controls opt-in behavior for new members
-		const mcResponse = await fetch(url, {
-			method: "PUT",
-			headers: {
-				Authorization: `Basic ${auth}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				email_address: emailRaw,
-				status_if_new: "subscribed",
-				merge_fields: {
-					FNAME: firstName,
-					LNAME: lastName,
-					ORGANISATI: organisatie,
-					LEEFTIJD: leeftijd,
-					MMERGE7: heardFrom,
-					MMERGE8: needs,
+		const putMember = async (mergeFields) => {
+			const response = await fetch(url, {
+				method: "PUT",
+				headers: {
+					Authorization: `Basic ${auth}`,
+					"Content-Type": "application/json",
 				},
-			}),
-		});
+				body: JSON.stringify({
+					email_address: emailRaw,
+					status_if_new: "subscribed",
+					merge_fields: mergeFields,
+				}),
+			});
+			const json = await response.json().catch(() => ({}));
+			return { response, json };
+		};
 
-		const mcJson = await mcResponse.json().catch(() => ({}));
+		// PUT is idempotent; status_if_new controls opt-in behavior for new members
+		const primaryMergeFields = {
+			FNAME: firstName,
+			LNAME: lastName,
+			ORGANISATI: organisatie,
+			LEEFTIJD: leeftijd,
+			MMERGE7: heardFrom,
+			MMERGE8: needs,
+		};
+
+		let { response: mcResponse, json: mcJson } = await putMember(primaryMergeFields);
+		let usedFallback = false;
+
+		if (!mcResponse.ok && mcResponse.status >= 400 && mcResponse.status < 500 && isMailchimpMergeFieldError(mcJson)) {
+			console.error("Mailchimp merge_fields mismatch; retrying with minimal merge fields", {
+				status: mcResponse.status,
+				title: mcJson?.title,
+				detail: mcJson?.detail,
+				errors: mcJson?.errors,
+			});
+
+			({ response: mcResponse, json: mcJson } = await putMember({ FNAME: firstName, LNAME: lastName }));
+			usedFallback = mcResponse.ok;
+		}
+
 		if (!mcResponse.ok) {
 			const title = String(mcJson?.title || "");
 			const detail = String(mcJson?.detail || "");
@@ -243,7 +288,14 @@ export default async function handler(req, res) {
 
 		const status = String(mcJson?.status || "");
 		if (status === "subscribed") {
-			return res.status(200).json({ ok: true, message: "Je inschrijving is voltooid." });
+			return res
+				.status(200)
+				.json({
+					ok: true,
+					message: usedFallback
+						? "Je inschrijving is voltooid. (Sommige extra gegevens konden niet worden opgeslagen.)"
+						: "Je inschrijving is voltooid.",
+				});
 		}
 
 		return res
