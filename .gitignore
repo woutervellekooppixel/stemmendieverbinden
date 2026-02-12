@@ -1,3 +1,10 @@
 .DS_Store
 node_modules
 .vercel
+
+# Speaker originals (keep thumbs in git)
+assets/speakers/*.jpg
+assets/speakers/*.jpeg
+assets/speakers/*.png
+!assets/speakers/thumbs/
+!assets/speakers/thumbs/*.jpg
