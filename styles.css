@@ -723,6 +723,12 @@ input.button:focus,
 	line-height: 1.45;
 }
 
+.speakerCard .photoCredit {
+	font-size: 12.5px;
+	color: var(--muted);
+	line-height: 1.35;
+}
+
 .speakerCard p + p {
 	margin-top: 8px;
 }
