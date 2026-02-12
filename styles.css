@@ -652,6 +652,15 @@ input.button:focus,
 }
 
 /* Speakers */
+.speakerSectionTitle {
+	margin: 12px 0 10px;
+	font-size: 16px;
+}
+
+.speakerSectionTitle:first-child {
+	margin-top: 0;
+}
+
 .speakerGrid {
 	display: grid;
 	grid-template-columns: 1fr;
@@ -679,23 +688,30 @@ input.button:focus,
 	background: #ffffff;
 	border-radius: 12px;
 	overflow: hidden;
-	display: grid;
-	grid-template-columns: 96px 1fr;
-	gap: 12px;
-	align-items: center;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: stretch;
 	padding: 12px;
 }
 
 .speakerPhoto {
-	width: 96px;
-	height: 96px;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 1 / 1;
 	border-radius: 12px;
 	object-fit: cover;
 	background: var(--surface2);
 	border: 1px solid var(--border2);
+	display: block;
 }
 
-.speakerCard h3 {
+/* Fine-tune crops per speaker when needed */
+.speakerPhoto--rui {
+	object-position: 50% 32%;
+}
+
+.speakerCard h4 {
 	margin: 0 0 4px;
 	font-size: 16px;
 }
@@ -707,22 +723,19 @@ input.button:focus,
 	line-height: 1.45;
 }
 
+.speakerCard p + p {
+	margin-top: 8px;
+}
+
 @media (min-width: 620px) {
 	.speakerGrid {
 		grid-template-columns: 1fr 1fr;
-	}
-	.speakerCard {
-		grid-template-columns: 104px 1fr;
-	}
-	.speakerPhoto {
-		width: 104px;
-		height: 104px;
 	}
 }
 
 @media (min-width: 980px) {
 	.speakerGrid {
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr 1fr 1fr;
 		gap: 14px;
 	}
 }
