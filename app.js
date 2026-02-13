@@ -64,6 +64,122 @@
 		}
 	}
 
+	// Speaker bios: clamp + "Lees meer" toggle (program page)
+	const bioToggles = Array.from(document.querySelectorAll(".bioToggle")).filter(
+		(el) => el instanceof HTMLButtonElement
+	);
+
+	if (bioToggles.length) {
+		const items = bioToggles
+			.map((toggle) => {
+				const card = toggle.closest(".speakerCard");
+				const bio = card?.querySelector(".speakerBio");
+				if (!(bio instanceof HTMLElement)) return null;
+
+				if (!bio.id) {
+					bio.id = `bio-${Math.random().toString(36).slice(2, 10)}`;
+				}
+				toggle.setAttribute("aria-controls", bio.id);
+				return { toggle, bio };
+			})
+			.filter(Boolean);
+
+		const COLLAPSED_LINES = 6;
+
+		const getCollapsedHeight = (bio) => {
+			const styles = window.getComputedStyle(bio);
+			const lineHeight = Number.parseFloat(styles.lineHeight);
+			if (Number.isFinite(lineHeight) && lineHeight > 0) {
+				return Math.ceil(lineHeight * COLLAPSED_LINES);
+			}
+			const fontSize = Number.parseFloat(styles.fontSize) || 14;
+			return Math.ceil(fontSize * 1.45 * COLLAPSED_LINES);
+		};
+
+		const setExpanded = (current, expanded, { animate = true } = {}) => {
+			const { toggle, bio } = current;
+			const collapsedHeight = getCollapsedHeight(bio);
+
+			const applyState = () => {
+				bio.classList.toggle("is-clamped", !expanded);
+				bio.classList.toggle("is-expanded", expanded);
+				toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+				toggle.textContent = expanded ? "Lees minder" : "Lees meer";
+			};
+
+			// Ensure we can animate max-height between two concrete values.
+			if (!animate) {
+				applyState();
+				bio.style.maxHeight = expanded ? "none" : `${collapsedHeight}px`;
+				return;
+			}
+
+			if (expanded) {
+				applyState();
+				bio.style.maxHeight = `${collapsedHeight}px`;
+				// Next frame: animate to full height
+				requestAnimationFrame(() => {
+					bio.style.maxHeight = `${bio.scrollHeight}px`;
+				});
+			} else {
+				// Start from current height, then animate down
+				applyState();
+				bio.style.maxHeight = `${bio.scrollHeight}px`;
+				requestAnimationFrame(() => {
+					bio.style.maxHeight = `${collapsedHeight}px`;
+				});
+			}
+		};
+
+		const collapseAllExcept = (exception) => {
+			for (const item of items) {
+				if (exception && item.bio === exception.bio) continue;
+				setExpanded(item, false);
+			}
+		};
+
+		// Initial clamp + hide toggles for short bios
+		for (const item of items) {
+			const collapsedHeight = getCollapsedHeight(item.bio);
+			item.bio.style.maxHeight = `${collapsedHeight}px`;
+			item.bio.classList.add("is-clamped");
+			item.bio.classList.remove("is-expanded");
+			item.toggle.setAttribute("aria-expanded", "false");
+			item.toggle.textContent = "Lees meer";
+
+			// If there's nothing to expand, hide the button.
+			if (item.bio.scrollHeight <= collapsedHeight + 2) {
+				item.toggle.style.display = "none";
+			}
+		}
+
+		for (const item of items) {
+			item.toggle.addEventListener("click", () => {
+				const isExpanded = item.toggle.getAttribute("aria-expanded") === "true";
+				if (!isExpanded) {
+					collapseAllExcept(item);
+					setExpanded(item, true);
+				} else {
+					setExpanded(item, false);
+				}
+			});
+		}
+
+		// Keep expanded height correct on resize.
+		let resizeTimer;
+		window.addEventListener("resize", () => {
+			window.clearTimeout(resizeTimer);
+			resizeTimer = window.setTimeout(() => {
+				for (const item of items) {
+					const expanded = item.toggle.getAttribute("aria-expanded") === "true";
+					const collapsedHeight = getCollapsedHeight(item.bio);
+					if (expanded) item.bio.style.maxHeight = `${item.bio.scrollHeight}px`;
+					else item.bio.style.maxHeight = `${collapsedHeight}px`;
+				}
+			}, 120);
+		});
+	}
+
 	// Subscribe form logic (only on the signup page)
 	const form = document.getElementById("mc-embedded-subscribe-form");
 	if (!form) return;

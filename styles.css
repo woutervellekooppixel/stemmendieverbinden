@@ -695,6 +695,25 @@ input.button:focus,
 	padding: 12px;
 }
 
+.speakerPhotoWrap {
+	position: relative;
+}
+
+.photoCredit--overlay {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	margin: 0;
+	padding: 4px 6px;
+	max-width: 100%;
+	background: rgba(255, 255, 255, 0.78);
+	border: 1px solid var(--border2);
+	border-radius: 10px;
+	pointer-events: none;
+	font-size: 11.5px;
+	line-height: 1.25;
+}
+
 .speakerPhoto {
 	width: 100%;
 	height: auto;
@@ -716,11 +735,64 @@ input.button:focus,
 	font-size: 16px;
 }
 
+.speakerCard .speakerRole {
+	margin: 0 0 6px;
+	font-size: 12.5px;
+	line-height: 1.35;
+	color: var(--muted);
+	text-transform: lowercase;
+}
+
 .speakerCard p {
 	margin: 0;
 	color: var(--muted);
-	font-size: 14px;
+	font-size: 13px;
 	line-height: 1.45;
+}
+
+.speakerCard .speakerBio {
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 1.42;
+	overflow: hidden;
+	transition:
+		max-height 280ms ease,
+		opacity 180ms ease;
+	will-change: max-height;
+}
+
+.speakerCard .speakerBio.is-clamped {
+	opacity: 0.98;
+}
+
+.speakerCard .speakerBio.is-expanded {
+	opacity: 1;
+}
+
+.speakerCard .bioToggle {
+	margin-top: 8px;
+	align-self: start;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	color: var(--primary);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+.speakerCard .bioToggle:hover {
+	color: var(--primaryHover);
+}
+
+.speakerCard .bioToggle:focus-visible {
+	outline: 3px solid var(--focus);
+	outline-offset: 3px;
+	border-radius: 6px;
 }
 
 .speakerCard .photoCredit {
@@ -735,13 +807,25 @@ input.button:focus,
 
 @media (min-width: 620px) {
 	.speakerGrid {
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr 1fr 1fr 1fr;
+	}
+
+	/*
+		If the last row isn't full (e.g. 10 cards in 4 columns),
+		center the remaining card(s) so they don't hug the left edge.
+	*/
+	.speakerGrid > :nth-last-child(1):nth-child(4n + 1) {
+		grid-column: 2;
+	}
+
+	.speakerGrid > :nth-last-child(2):nth-child(4n + 1) {
+		grid-column: 2;
 	}
 }
 
 @media (min-width: 980px) {
 	.speakerGrid {
-		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-columns: 1fr 1fr 1fr 1fr;
 		gap: 14px;
 	}
 }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Placeholder voor Armando Ello">
+	<rect width="800" height="800" fill="#f3f6f4" />
+	<rect x="24" y="24" width="752" height="752" rx="48" fill="#ffffff" stroke="#e5e7eb" stroke-width="8" />
+	<circle cx="400" cy="320" r="140" fill="#d1d5db" />
+	<path d="M160 720c36-164 144-256 240-256s204 92 240 256" fill="#d1d5db" />
+	<text x="400" y="650" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#4b5563">AE</text>
+</svg>
